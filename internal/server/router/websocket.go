@@ -25,10 +25,15 @@ type WebSocket struct {
     acme.Acme
 }
 
+type Gophers struct {
+    OnlineTime int64
+    Nickname   string
+}
+
 // WebSocket
 func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
     wsm := melody.New()
-    gophers := make(map[*melody.Session]int64)
+    gophers := make(map[*melody.Session]Gophers, 0)
     lock := new(sync.Mutex)
     counter := 0
     wsm.Upgrader.CheckOrigin = func(r *http.Request) bool {
@@ -43,7 +48,11 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
     wsm.HandleConnect(func(s *melody.Session) {
         lock.Lock()
         defer lock.Unlock()
-        gophers[s] = carbon.Now().ToTimestampWithSecond()
+        id, _ := variables.Snowflake.NextID()
+        gophers[s] = Gophers{
+            OnlineTime: carbon.Now().ToTimestampWithSecond(),
+            Nickname:   tool.ToStr(id),
+        }
         counter += 1
         if Debug {
             tool.PrintVar(fmt.Sprintf("客户端连接，连接后的用户数为：%d", counter))
@@ -62,7 +71,7 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
                         // 不广播历史消息
                         t := carbon.Now().ToTimestampWithSecond()
                         if v, ok := gophers[s]; ok {
-                            t = v
+                            t = v.OnlineTime
                         }
                         if arguments.Time >= t {
                             msg := behavior.CBehavior.Message(arguments.Behavior, arguments.BehaviorId, arguments.Arguments)
@@ -81,6 +90,11 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
     wsm.HandleDisconnect(func(s *melody.Session) {
         lock.Lock()
         defer lock.Unlock()
+        msg := behavior.CBehavior.Message("offline", "", echo.Map{
+            "nickname": gophers[s].Nickname,
+            "counter":  counter - 1,
+        })
+        _ = wsm.Broadcast([]byte(msg))
         delete(gophers, s)
         counter -= 1
         if Debug {
@@ -102,9 +116,25 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
             behavior.CBehavior.WsResponse(s, "pong", args.BehaviorId, nil)
             return
         }
-        if args.Behavior == "demoGroupChat:send" {
-            args.Arguments["time"] = carbon.CreateFromTimestamp(args.Time).ToFormatString("m/d H:i:s")
-            msg := behavior.CBehavior.Message(args.Behavior, args.BehaviorId, args.Arguments)
+
+        // TODO demo.register
+        if args.Behavior == "register" {
+            args.Arguments["user_id"] = gophers[s].Nickname
+            if _, ok := args.Arguments["nickname"]; !ok {
+                args.Arguments["nickname"] = args.Arguments["user_id"]
+            }
+
+            user := gophers[s]
+            user.Nickname = tool.ToStr(args.Arguments["nickname"])
+            gophers[s] = user
+
+            // 返回注册信息
+            args.Arguments["user_id"] = int64(tool.ToInt(args.Arguments["user_id"]))
+            args.Arguments["token"] = w.TokenCreator(args.Arguments)
+            behavior.CBehavior.WsResponse(s, args.Behavior, args.BehaviorId, args.Arguments)
+            // 广播用户上线
+            args.Arguments["counter"] = counter
+            msg := behavior.CBehavior.Message("online", args.BehaviorId, args.Arguments)
             _ = wsm.Broadcast([]byte(msg))
             return
         }
@@ -127,7 +157,7 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
                         }
                         behavior.CBehavior.WsResponse(s, arguments.Behavior, arguments.BehaviorId, arguments.Arguments)
                     }
-                    if t, ok := gophers[s]; ok && t > 0 {
+                    if t, ok := gophers[s]; ok && t.OnlineTime > 0 {
                         return
                     }
                 }
@@ -135,6 +165,14 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
         }
 
         go func() { // 单用户指令
+            // TODO demo.chat
+            if args.Behavior == "chat" {
+                args.Arguments["from"] = usr.Nickname
+                args.Arguments["from_id"] = usr.UID
+                args.Arguments["time"] = carbon.CreateFromTimestamp(args.Time).ToFormatString("m/d H:i:s")
+                msg := behavior.CBehavior.Message(args.Behavior, args.BehaviorId, args.Arguments)
+                _ = wsm.Broadcast([]byte(msg))
+            }
         }()
         return
     })
