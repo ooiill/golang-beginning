@@ -1,0 +1,29 @@
+package mixed
+
+import (
+    "app/internal/pkg/acme"
+    "app/internal/pkg/config"
+    "app/pkg/handler"
+    "github.com/labstack/echo/v4"
+    "net/http"
+)
+
+var CConfig Config
+
+type Config struct {
+    handler.Response
+    acme.UserInfo
+}
+
+// 列表配置
+func (cc *Config) GetConfigure(c echo.Context) error {
+    _ = cc.ParseUserInfo(c)
+    var list = make(map[string]config.Cnf)
+    for key, cnf := range config.VBswConfig.ListConfig() {
+        if !cnf.AllowClientPull {
+            continue
+        }
+        list[key] = cnf
+    }
+    return c.JSON(http.StatusOK, cc.RS().ShowOkay(list))
+}

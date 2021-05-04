@@ -1,0 +1,61 @@
+[app]
+name = "项目的开端"
+env = "beta"
+debug = false
+version = "v0.0.1"
+listen = 8080
+img = "/app/storage/img"
+salt = "BWqzqzeCq8L$8obW"
+host = "http://beta.app.com"
+google_secret = "DXQHUUBTVBVSFEIA"
+
+[cnf]
+token_expire_hours = 24
+
+[log]
+gorm_log = true
+
+[jwt]
+secret = "U0042X2V^Lpb4OljBaHuinE$"
+
+[aes]
+key = "SFq3SIAPZY7t3mjj"
+iv = "lR25Ojr5Nq9uv9Lu"
+
+[db]
+connection = "mysql"
+host = "10.0.0.x"
+port = "3306"
+database = "beginning"
+username = "root"
+password = "Mys9l@7259"
+
+[cache]
+drive = "redis"
+
+[redis]
+host = "10.0.0.x"
+port = "6379"
+auth = "Red1s@9527"
+database = 0
+
+[fs]
+drive = "cos"
+secret_id = ""
+secret_key = ""
+bucket = ""
+region = "ap-shanghai"
+
+[queue]
+drive = "rabbit-mq"
+
+[rabbit-mq]
+host = "10.0.0.x"
+port = "5672"
+user = "admin"
+pass = "admin"
+vhost = "/"
+
+[wx-applet]
+app_id = ""
+app_secret = ""
