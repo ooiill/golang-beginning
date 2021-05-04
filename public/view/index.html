@@ -1,0 +1,98 @@
+<html lang="cn">
+<head>
+    <title>全员-聊天室</title>
+    <script src="../js/jquery.js"></script>
+</head>
+
+<style>
+    div.container {
+        margin: 20px auto;
+        width: 600px;
+        text-align: center;
+        font-family: Monaco, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Helvetica Neue, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
+    }
+
+    pre#chat {
+        text-align: left;
+        background: #fbfbfb;
+        width: 560px;
+        min-height: 300px;
+        padding: 10px 20px;
+    }
+
+    pre#chat > p > b {
+        font-weight: normal;
+        border: 1px solid #e6e6e6;
+        border-radius: 4px;
+        padding: 2px 4px;
+        color: #a8a8a9;
+    }
+
+    input#text {
+        width: 200px;
+        height: 36px;
+        border-radius: 0;
+        border: 1px solid gray;
+        text-indent: 5px;
+        font-size: 14px;
+    }
+</style>
+
+<body>
+<div class="container">
+    <h3>全员-聊天室 <sup id="name"></sup></h3>
+    <pre id="chat"></pre>
+
+    <label for="text">说点什么呢：</label>
+    <input placeholder="按回车发送" id="text" type="text" autofocus/>
+</div>
+
+<script>
+    let url = "ws://" + window.location.host + "/ws/behavior";
+    let ws = new WebSocket(url);
+    let getName = function () {
+        let name = prompt("请输入你的昵称");
+        if (name == null || name.length === 0) {
+            return getName();
+        }
+        return name;
+    }
+    let name = getName()
+    $("sup#name").html(name);
+
+    // 创建成功
+    ws.onopen = function () {
+        console.log("成功连接服务器。");
+    }
+    // 关闭
+    ws.onclose = function (e) {
+        console.log("收到关闭请求，成功断开连接。", e);
+    }
+    // 触发错误
+    ws.onerror = function (e) {
+        console.log("连接/接收/发送出现错误。", e);
+    }
+
+    ws.onmessage = function (msg) {
+        let response = eval(`(${msg.data})`)
+        $("pre#chat").append(`<p><b>${response.Arguments.time}</b> ${response.Arguments.name}: ${response.Arguments.message}</p>`)
+        console.log("收到消息", response)
+    };
+
+    let text = $("input#text")
+    text.on("keydown", function (e) {
+        if (e.keyCode === 13 && text.val() !== "") {
+            ws.send(JSON.stringify({
+                Behavior: "demoGroupChat:send",
+                Arguments: {
+                    name,
+                    message: text.val()
+                },
+                Time: Math.floor((new Date()).getTime() / 1000)
+            }))
+            text.val("");
+        }
+    })
+</script>
+</body>
+</html>

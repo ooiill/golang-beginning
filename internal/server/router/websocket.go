@@ -102,6 +102,12 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
             behavior.CBehavior.WsResponse(s, "pong", args.BehaviorId, nil)
             return
         }
+        if args.Behavior == "demoGroupChat:send" {
+            args.Arguments["time"] = carbon.CreateFromTimestamp(args.Time).ToFormatString("m/d H:i:s")
+            msg := behavior.CBehavior.Message(args.Behavior, args.BehaviorId, args.Arguments)
+            _ = wsm.Broadcast([]byte(msg))
+            return
+        }
 
         usr, err := w.ParseToken(args.Authorization)
         if err != nil {
@@ -129,7 +135,6 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
         }
 
         go func() { // 单用户指令
-            // TODO
         }()
         return
     })
