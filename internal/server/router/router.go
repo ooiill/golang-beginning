@@ -70,20 +70,19 @@ func Route(e *echo.Echo) {
     }
 
     // WebSocket Route
-    RWebSocket.WebSocketRoute(e)
+    RWsBehavior.WsBehaviorRouter(e)
+    RWsChat.WsChatRoute(e)
+    RWsLandlord.WsLandlordRoute(e)
 
     // 项目路由
     e.GET("/", mixed.CHome.GetHomepage, jwtMiddle, rateMiddle(1))             // 首页
     e.GET("/demo", mixed.CDemo.GetDemo, jwtMiddle, rateMiddle(10))            // Demo
     e.GET("/configure", mixed.CConfig.GetConfigure, jwtMiddle, rateMiddle(1)) // 获取配置
 
-    e.GET("/js/:js", func(c echo.Context) error {
-        return c.File(fmt.Sprintf("public/js/%s", c.Param("js")))
-    })
-    e.GET("/css/:css", func(c echo.Context) error {
-        return c.File(fmt.Sprintf("public/css/%s", c.Param("css")))
-    })
+    e.Static("/node_modules", "public/node_modules")
+    e.Static("/js", "public/js")
+    e.Static("/css", "public/css")
     e.GET("/v/:html", func(c echo.Context) error {
-        return c.File(fmt.Sprintf("public/view/%s", c.Param("html")))
+        return c.File(fmt.Sprintf("public/view/%s.html", c.Param("html")))
     })
 }

@@ -16,24 +16,24 @@ import (
     "time"
 )
 
-var RWebSocket WebSocket
-var Debug = false
+var RWsBehavior WsBehavior
+var BehaviorDebug = false
 
-type WebSocket struct {
+type WsBehavior struct {
     handler.Response
     acme.UserInfo
     acme.Acme
 }
 
-type Gophers struct {
+type BehaviorGophers struct {
     OnlineTime int64
     Nickname   string
 }
 
-// WebSocket
-func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
+// WebSocket behavior
+func (w *WsBehavior) WsBehaviorRouter(e *echo.Echo) {
     wsm := melody.New()
-    gophers := make(map[*melody.Session]Gophers, 0)
+    gophers := make(map[*melody.Session]BehaviorGophers, 0)
     lock := new(sync.Mutex)
     counter := 0
     wsm.Upgrader.CheckOrigin = func(r *http.Request) bool {
@@ -49,12 +49,12 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
         lock.Lock()
         defer lock.Unlock()
         id, _ := variables.Snowflake.NextID()
-        gophers[s] = Gophers{
+        gophers[s] = BehaviorGophers{
             OnlineTime: carbon.Now().ToTimestampWithSecond(),
             Nickname:   tool.ToStr(id),
         }
         counter += 1
-        if Debug {
+        if BehaviorDebug {
             tool.PrintVar(fmt.Sprintf("客户端连接，连接后的用户数为：%d", counter))
         }
         if counter == 1 { // 全服行为监听
@@ -64,7 +64,7 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
                     if len(allBehavior) >= 2 {
                         arguments := &acme.WebSocketResponse{}
                         tool.JsonToInterface(allBehavior[1], &arguments)
-                        if Debug {
+                        if BehaviorDebug {
                             tool.PrintVar(fmt.Sprintf("收到全服队列消息：%+v", arguments))
                         }
 
@@ -90,14 +90,9 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
     wsm.HandleDisconnect(func(s *melody.Session) {
         lock.Lock()
         defer lock.Unlock()
-        msg := behavior.CBehavior.Message("offline", "", echo.Map{
-            "nickname": gophers[s].Nickname,
-            "counter":  counter - 1,
-        })
-        _ = wsm.Broadcast([]byte(msg))
         delete(gophers, s)
         counter -= 1
-        if Debug {
+        if BehaviorDebug {
             tool.PrintVar(fmt.Sprintf("客户端断开连接，断开后的用户数为：%d", counter))
         }
     })
@@ -109,33 +104,11 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
         args := &behavior.WebSocketRequest{}
         tool.JsonToInterface(string(msg), &args)
 
-        if Debug {
+        if BehaviorDebug {
             tool.PrintVar(fmt.Sprintf("收到消息：%+v", args))
         }
         if args.Behavior == "ping" {
             behavior.CBehavior.WsResponse(s, "pong", args.BehaviorId, nil)
-            return
-        }
-
-        // TODO demo.register
-        if args.Behavior == "register" {
-            args.Arguments["user_id"] = gophers[s].Nickname
-            if _, ok := args.Arguments["nickname"]; !ok {
-                args.Arguments["nickname"] = args.Arguments["user_id"]
-            }
-
-            user := gophers[s]
-            user.Nickname = tool.ToStr(args.Arguments["nickname"])
-            gophers[s] = user
-
-            // 返回注册信息
-            args.Arguments["user_id"] = int64(tool.ToInt(args.Arguments["user_id"]))
-            args.Arguments["token"] = w.TokenCreator(args.Arguments)
-            behavior.CBehavior.WsResponse(s, args.Behavior, args.BehaviorId, args.Arguments)
-            // 广播用户上线
-            args.Arguments["counter"] = counter
-            msg := behavior.CBehavior.Message("online", args.BehaviorId, args.Arguments)
-            _ = wsm.Broadcast([]byte(msg))
             return
         }
 
@@ -152,7 +125,7 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
                     if len(userBehavior) >= 2 {
                         arguments := &acme.WebSocketResponse{}
                         tool.JsonToInterface(userBehavior[1], &arguments)
-                        if Debug {
+                        if BehaviorDebug {
                             tool.PrintVar(fmt.Sprintf("收到单用户队列消息：%+v", arguments))
                         }
                         behavior.CBehavior.WsResponse(s, arguments.Behavior, arguments.BehaviorId, arguments.Arguments)
@@ -162,17 +135,10 @@ func (w *WebSocket) WebSocketRoute(e *echo.Echo) {
                     }
                 }
             }()
+            return
         }
 
         go func() { // 单用户指令
-            // TODO demo.chat
-            if args.Behavior == "chat" {
-                args.Arguments["from"] = usr.Nickname
-                args.Arguments["from_id"] = usr.UID
-                args.Arguments["time"] = carbon.CreateFromTimestamp(args.Time).ToFormatString("m/d H:i:s")
-                msg := behavior.CBehavior.Message(args.Behavior, args.BehaviorId, args.Arguments)
-                _ = wsm.Broadcast([]byte(msg))
-            }
         }()
         return
     })

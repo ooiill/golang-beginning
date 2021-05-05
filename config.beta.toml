@@ -4,7 +4,6 @@ env = "beta"
 debug = false
 version = "v0.0.1"
 listen = 8080
-img = "/app/storage/img"
 salt = "BWqzqzeCq8L$8obW"
 host = "http://beta.app.com"
 google_secret = "DXQHUUBTVBVSFEIA"

@@ -1,0 +1,57 @@
+div.container {
+    margin: 20px auto;
+    width: 600px;
+    text-align: center;
+    font-family: Monaco, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Helvetica Neue, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
+}
+
+div#chat {
+    text-align: left;
+    background: #fbfbfb;
+    width: 560px;
+    height: 350px;
+    padding: 10px 20px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    overflow: scroll;
+}
+
+div#chat > p > b {
+    font-weight: normal;
+    border-radius: 4px;
+    padding: 2px 4px;
+    color: #a8a8a9;
+}
+
+div#chat > p.online, div#chat > p.offline {
+    text-align: center;
+}
+
+div#chat > p.online > b {
+    border: 1px solid #e6e6e6;
+}
+
+div#chat > p.offline > b {
+    border: 1px solid #ffcece;
+    color: #ffbdbd;
+}
+
+input#text {
+    width: 100%;
+    height: 44px;
+    border-radius: 0;
+    border: 1px solid gray;
+    text-indent: 5px;
+    font-size: 14px;
+}
+
+@media screen and (max-width: 750px) {
+    div.container {
+        width: 100%;
+    }
+
+    div#chat {
+        width: 96%;
+        padding: 10px 2%;
+    }
+}
