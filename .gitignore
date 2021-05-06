@@ -4,3 +4,4 @@ main
 api
 queue
 .editorconfig
+public/node_modules
