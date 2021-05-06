@@ -11,7 +11,8 @@ bsw.configure({
         myPlayer: {},
         willDown: 0,
         nextColor: "black",
-        chessHistory: {}
+        chessHistory: {},
+        isWin: false,
     },
     method: {
         inputNickname() {
@@ -58,6 +59,9 @@ bsw.configure({
                         }
                         that.willDown = willDown
                     }
+                    if (that.isWin) {
+                        return
+                    }
                     that.ws.send(JSON.stringify({
                         Authorization: that.token,
                         Behavior: "move",
@@ -72,6 +76,9 @@ bsw.configure({
                     $(document).off("mousemove")
                     $(document).off("mouseup")
                     if (that.willDown > 0) {
+                        if (that.isWin) {
+                            return
+                        }
                         that.ws.send(JSON.stringify({
                             Authorization: that.token,
                             Behavior: "chessDown",
@@ -79,7 +86,6 @@ bsw.configure({
                                 willDown: that.willDown,
                             }
                         }))
-
                     }
                 })
             })
@@ -142,6 +148,14 @@ bsw.configure({
                     v.nextColor = args.nextColor
                     v.resetPlayers(args.players)
                     v.cloneChess()
+                    if (args.win.length > 0) {
+                        v.isWin = true
+                        if (args.win === v.myPlayer.chess_color) {
+                            bsw.confirm("success", "你赢了，再接再厉吧~", 0, bsw.blank(), {zIndex: 10000})
+                        } else {
+                            bsw.confirm("warning", "你输了，要努力了哟~", 0, bsw.blank(), {zIndex: 10000})
+                        }
+                    }
                 }
                 if (typeof args.room_number !== 'undefined') {
                     v.roomNumber = args.room_number

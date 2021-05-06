@@ -8,6 +8,7 @@ import (
     "fmt"
     "github.com/labstack/echo/v4"
     "gopkg.in/olahol/melody.v1"
+    "math"
     "sync"
 )
 
@@ -114,6 +115,15 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
         return "black"
     }
 
+    // 计算是否胜出
+    var calIsWin = func(color string, down int) string {
+        row := int(math.Floor(float64(down / 15)))
+        col := down % 15
+        tool.PrintVar(down, row, col)
+
+        return ""
+    }
+
     // 处理连接
     wsm.HandleConnect(func(s *melody.Session) {
         lock.Lock()
@@ -171,6 +181,9 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
             behavior.CBehavior.WsResponse(s, args.Behavior, args.BehaviorId, args.Arguments)
 
             // 对该房间的人进行广播.玩家上线
+            if _, ok := chessHistory[me.RoomIndex]; !ok {
+                chessHistory[me.RoomIndex] = make(map[int]string)
+            }
             msg := behavior.CBehavior.Message("online", args.BehaviorId, map[string]interface{}{
                 "message":   fmt.Sprintf("[%s] %s 上线了", colorMap[me.ChessColor], me.Nickname),
                 "online":    len(roomPlayers[me.RoomIndex]),
@@ -216,6 +229,7 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
                 chessDown[me.RoomIndex] += 1
             }
 
+            args.Arguments["win"] = calIsWin(chessHistory[me.RoomIndex][willDown], willDown)
             msg := behavior.CBehavior.Message(args.Behavior, args.BehaviorId, args.Arguments)
             _ = wsm.BroadcastMultiple([]byte(msg), getSessionsByRoomIndex(sessionPlayers[s].RoomIndex))
             return
