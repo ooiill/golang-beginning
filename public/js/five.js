@@ -9,7 +9,7 @@ $(function () {
     }
     let nickname = inputNickname()
 
-    let ws = new ReconnectingWebSocket(`ws://${window.location.host}/ws/landlord`);
+    let ws = new WebSocket(`ws://${window.location.host}/ws/five`);
     ws.onopen = function () {
         console.log("成功连接服务器。");
         ws.send(JSON.stringify({
