@@ -8,7 +8,10 @@ bsw.configure({
         roomNumber: 0,
         blackPlayer: {},
         whitePlayer: {},
+        myPlayer: {},
         willDown: 0,
+        nextColor: "black",
+        chessHistory: {}
     },
     method: {
         inputNickname() {
@@ -18,30 +21,81 @@ bsw.configure({
             }
             return nickname
         },
+        cloneChess() {
+            let that = this
+            let offset = bsw.offset($(`div.data > div > div.${that.nextColor}`))
+            $(".container > .abs").remove()
+            $(".container").append(`<div class="chess abs ${that.nextColor}"></div>`)
+            let abs = $(".container > div.abs")
+            abs.css({left: offset.left, top: offset.top})
+            that.willDown = 0
+            that.drop(abs)
+        },
         drop(element) {
-            element.mousedown(function (e) {
-                let positionDiv = $(this).offset();
-                let distenceX = e.pageX - positionDiv.left;
-                let distenceY = e.pageY - positionDiv.top;
+            let that = this
+            if (!element.hasClass(that.myPlayer.chess_color)) {
+                return
+            }
+            element.mousedown(function (event) {
                 $(document).mousemove(function (e) {
-                    let x = e.pageX - distenceX;
-                    let y = e.pageY - distenceY;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x > $(document).width() - $('div').outerWidth(true)) {
-                        x = $(document).width() - $('div').outerWidth(true);
+                    let x = e.pageX - event.offsetX
+                    let y = e.pageY - event.offsetY
+                    element.css({left: x, top: y})
+                    let downX = Math.floor((e.pageX - 70) / 50)
+                    let downY = Math.floor((e.pageY - 70) / 50)
+                    if ((e.pageX - 70) % 50 > 25) {
+                        downX += 1
                     }
-                    if (y < 0) {
-                        y = 0;
-                    } else if (y > $(document).height() - $('div').outerHeight(true)) {
-                        y = $(document).height() - $('div').outerHeight(true);
+                    if ((e.pageY - 70) % 50 > 25) {
+                        downY += 1
                     }
-                    element.css({'left': x + 'px', 'top': y + 'px'});
-                });
+                    if (downX < 0 || downX > 14 || downY < 0 || downY > 15) {
+                        that.willDown = 0
+                    } else {
+                        let willDown = (downY * 15) + (downX + 1)
+                        if (that.chessHistory[willDown]) { // 已落子
+                            willDown = 0
+                        }
+                        that.willDown = willDown
+                    }
+                    that.ws.send(JSON.stringify({
+                        Authorization: that.token,
+                        Behavior: "move",
+                        Arguments: {
+                            left: x,
+                            top: y,
+                            willDown: that.willDown,
+                        }
+                    }))
+                })
                 $(document).mouseup(function () {
-                    $(document).off('mousemove');
-                });
-            });
+                    $(document).off("mousemove")
+                    $(document).off("mouseup")
+                    if (that.willDown > 0) {
+                        that.ws.send(JSON.stringify({
+                            Authorization: that.token,
+                            Behavior: "chessDown",
+                            Arguments: {
+                                willDown: that.willDown,
+                            }
+                        }))
+
+                    }
+                })
+            })
+        },
+        resetPlayers(players) {
+            let that = this
+            for (let member of players) {
+                if (member.chess_color === "black") {
+                    that.blackPlayer = member
+                } else {
+                    that.whitePlayer = member
+                }
+                if (member.player_id === that.userId) {
+                    that.myPlayer = member
+                }
+            }
         }
     },
     logic: {
@@ -63,37 +117,39 @@ bsw.configure({
 
             v.ws.onmessage = function (msg) {
                 let response = eval(`(${msg.data})`)
-                console.log("收到消息", response)
+                let args = response.Arguments
+                if (response.Behavior !== "move") {
+                    console.log("收到消息", response)
+                }
                 if (response.Behavior === "register") {
-                    [v.token, v.userId] = [response.Arguments.token, response.Arguments.user_id]
+                    [v.token, v.userId] = [args.token, args.user_id]
                 } else if (response.Behavior === "online") {
-                    bsw.success(response.Arguments.message)
-                    for (let member of response.Arguments.players) {
-                        if (member.chess_color === "black") {
-                            v.blackPlayer = member
-                        } else {
-                            v.whitePlayer = member
-                        }
+                    bsw.success(args.message)
+                    v.nextColor = args.nextColor
+                    v.resetPlayers(args.players)
+                    if (args.players.length === 2) {
+                        v.cloneChess()
                     }
+                    v.chessHistory = args.history
                 } else if (response.Behavior === "offline") {
-                    bsw.warning(response.Arguments.message)
+                    bsw.warning(args.message)
+                } else if (response.Behavior === "move") {
+                    let abs = $(".container > div.abs")
+                    abs.css({left: args.left, top: args.top})
+                    v.willDown = args.willDown
+                } else if (response.Behavior === "chessDown") {
+                    v.chessHistory = args.history
+                    v.nextColor = args.nextColor
+                    v.resetPlayers(args.players)
+                    v.cloneChess()
                 }
-                if (typeof response.Arguments.room_number !== 'undefined') {
-                    v.roomNumber = response.Arguments.room_number
+                if (typeof args.room_number !== 'undefined') {
+                    v.roomNumber = args.room_number
                 }
-                if (typeof response.Arguments.online !== 'undefined') {
-                    v.online = response.Arguments.online
+                if (typeof args.online !== 'undefined') {
+                    v.online = args.online
                 }
             }
-
-            $(".chess").hover(function () {
-                let isBlack = $(this).hasClass("black")
-                $(".container").append(`<div class="chess abs ${isBlack ? 'black' : 'white'}"></div>`)
-                let offset = bsw.offset($(this))
-                $("div.abs").css({left: offset.left, top: offset.top})
-            }, function () {
-                $(".container div.abs").remove()
-            })
         }
     }
 })

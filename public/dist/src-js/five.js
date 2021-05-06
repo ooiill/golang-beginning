@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 bsw.configure({
     data: {
@@ -10,7 +10,10 @@ bsw.configure({
         roomNumber: 0,
         blackPlayer: {},
         whitePlayer: {},
-        willDown: 0
+        myPlayer: {},
+        willDown: 0,
+        nextColor: "black",
+        chessHistory: {}
     },
     method: {
         inputNickname: function inputNickname() {
@@ -20,36 +23,108 @@ bsw.configure({
             }
             return nickname;
         },
+        cloneChess: function cloneChess() {
+            var that = this;
+            var offset = bsw.offset($("div.data > div > div." + that.nextColor));
+            $(".container > .abs").remove();
+            $(".container").append("<div class=\"chess abs " + that.nextColor + "\"></div>");
+            var abs = $(".container > div.abs");
+            abs.css({ left: offset.left, top: offset.top });
+            that.willDown = 0;
+            that.drop(abs);
+        },
         drop: function drop(element) {
-            element.mousedown(function (e) {
-                var positionDiv = $(this).offset();
-                var distenceX = e.pageX - positionDiv.left;
-                var distenceY = e.pageY - positionDiv.top;
+            var that = this;
+            if (!element.hasClass(that.myPlayer.chess_color)) {
+                return;
+            }
+            element.mousedown(function (event) {
                 $(document).mousemove(function (e) {
-                    var x = e.pageX - distenceX;
-                    var y = e.pageY - distenceY;
-                    if (x < 0) {
-                        x = 0;
-                    } else if (x > $(document).width() - $('div').outerWidth(true)) {
-                        x = $(document).width() - $('div').outerWidth(true);
+                    var x = e.pageX - event.offsetX;
+                    var y = e.pageY - event.offsetY;
+                    element.css({ left: x, top: y });
+                    var downX = Math.floor((e.pageX - 70) / 50);
+                    var downY = Math.floor((e.pageY - 70) / 50);
+                    if ((e.pageX - 70) % 50 > 25) {
+                        downX += 1;
                     }
-                    if (y < 0) {
-                        y = 0;
-                    } else if (y > $(document).height() - $('div').outerHeight(true)) {
-                        y = $(document).height() - $('div').outerHeight(true);
+                    if ((e.pageY - 70) % 50 > 25) {
+                        downY += 1;
                     }
-                    element.css({ 'left': x + 'px', 'top': y + 'px' });
+                    if (downX < 0 || downX > 14 || downY < 0 || downY > 15) {
+                        that.willDown = 0;
+                    } else {
+                        var willDown = downY * 15 + (downX + 1);
+                        if (that.chessHistory[willDown]) {
+                            // 已落子
+                            willDown = 0;
+                        }
+                        that.willDown = willDown;
+                    }
+                    that.ws.send(JSON.stringify({
+                        Authorization: that.token,
+                        Behavior: "move",
+                        Arguments: {
+                            left: x,
+                            top: y,
+                            willDown: that.willDown
+                        }
+                    }));
                 });
                 $(document).mouseup(function () {
-                    $(document).off('mousemove');
+                    $(document).off("mousemove");
+                    $(document).off("mouseup");
+                    if (that.willDown > 0) {
+                        that.ws.send(JSON.stringify({
+                            Authorization: that.token,
+                            Behavior: "chessDown",
+                            Arguments: {
+                                willDown: that.willDown
+                            }
+                        }));
+                    }
                 });
             });
+        },
+        resetPlayers: function resetPlayers(players) {
+            var that = this;
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = players[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var member = _step.value;
+
+                    if (member.chess_color === "black") {
+                        that.blackPlayer = member;
+                    } else {
+                        that.whitePlayer = member;
+                    }
+                    if (member.player_id === that.userId) {
+                        that.myPlayer = member;
+                    }
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
         }
     },
     logic: {
         ws: function ws(v) {
             v.nickname = v.inputNickname();
-            v.ws = new ReconnectingWebSocket('ws://' + window.location.host + '/ws/five');
+            v.ws = new ReconnectingWebSocket("ws://" + window.location.host + "/ws/five");
             v.ws.onopen = function () {
                 console.log("成功连接服务器。");
                 v.ws.send(JSON.stringify({
@@ -64,61 +139,42 @@ bsw.configure({
             };
 
             v.ws.onmessage = function (msg) {
-                var response = eval('(' + msg.data + ')');
-                console.log("收到消息", response);
+                var response = eval("(" + msg.data + ")");
+                var args = response.Arguments;
+                if (response.Behavior !== "move") {
+                    console.log("收到消息", response);
+                }
                 if (response.Behavior === "register") {
-                    var _ref = [response.Arguments.token, response.Arguments.user_id];
+                    var _ref = [args.token, args.user_id];
                     v.token = _ref[0];
                     v.userId = _ref[1];
                 } else if (response.Behavior === "online") {
-                    bsw.success(response.Arguments.message);
-                    var _iteratorNormalCompletion = true;
-                    var _didIteratorError = false;
-                    var _iteratorError = undefined;
-
-                    try {
-                        for (var _iterator = response.Arguments.players[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                            var member = _step.value;
-
-                            if (member.chess_color === "black") {
-                                v.blackPlayer = member;
-                            } else {
-                                v.whitePlayer = member;
-                            }
-                        }
-                    } catch (err) {
-                        _didIteratorError = true;
-                        _iteratorError = err;
-                    } finally {
-                        try {
-                            if (!_iteratorNormalCompletion && _iterator.return) {
-                                _iterator.return();
-                            }
-                        } finally {
-                            if (_didIteratorError) {
-                                throw _iteratorError;
-                            }
-                        }
+                    bsw.success(args.message);
+                    v.nextColor = args.nextColor;
+                    v.resetPlayers(args.players);
+                    if (args.players.length === 2) {
+                        v.cloneChess();
                     }
+                    v.chessHistory = args.history;
                 } else if (response.Behavior === "offline") {
-                    bsw.warning(response.Arguments.message);
+                    bsw.warning(args.message);
+                } else if (response.Behavior === "move") {
+                    var abs = $(".container > div.abs");
+                    abs.css({ left: args.left, top: args.top });
+                    v.willDown = args.willDown;
+                } else if (response.Behavior === "chessDown") {
+                    v.chessHistory = args.history;
+                    v.nextColor = args.nextColor;
+                    v.resetPlayers(args.players);
+                    v.cloneChess();
                 }
-                if (typeof response.Arguments.room_number !== 'undefined') {
-                    v.roomNumber = response.Arguments.room_number;
+                if (typeof args.room_number !== 'undefined') {
+                    v.roomNumber = args.room_number;
                 }
-                if (typeof response.Arguments.online !== 'undefined') {
-                    v.online = response.Arguments.online;
+                if (typeof args.online !== 'undefined') {
+                    v.online = args.online;
                 }
             };
-
-            $(".chess").hover(function () {
-                var isBlack = $(this).hasClass("black");
-                $(".container").append('<div class="chess abs ' + (isBlack ? 'black' : 'white') + '"></div>');
-                var offset = bsw.offset($(this));
-                $("div.abs").css({ left: offset.left, top: offset.top });
-            }, function () {
-                $(".container div.abs").remove();
-            });
         }
     }
 });

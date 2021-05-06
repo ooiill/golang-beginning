@@ -36,6 +36,12 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
     // 所有玩家，通过房间号找用户集合
     var roomPlayers []map[uint64]*melody.Session
 
+    // 棋盘落子记录
+    var chessHistory = make(map[int]map[int]string, 0)
+
+    // 棋盘落子次数（顺序）
+    var chessDown = make(map[int]int, 0)
+
     lock := new(sync.Mutex)
     e.GET("/ws/five", func(c echo.Context) error {
         _ = wsm.HandleRequest(c.Response().Writer, c.Request())
@@ -49,22 +55,28 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
 
     // 找房间坐下
     // 现有房间没有空位子则创建新房间
-    var sitDown func(player *Player, times int64) (th int64)
-    sitDown = func(player *Player, times int64) (th int64) {
+    var sitDown func(player *Player, times int64)
+    sitDown = func(player *Player, times int64) {
         for roomIndex, items := range roomPlayers {
             if len(items) >= 2 {
                 continue
             }
-            th = int64(len(items) + 1)
+            player.ChessColor = "black"
+            for _, item := range items {
+                if sessionPlayers[item].ChessColor == "black" {
+                    player.ChessColor = "white"
+                } else {
+                    player.ChessColor = "black"
+                }
+            }
             player.RoomIndex = roomIndex
             roomPlayers[roomIndex][player.PlayerId] = player.Session
             break
         }
         if player.RoomIndex < 0 {
             roomPlayers = append(roomPlayers, map[uint64]*melody.Session{})
-            return sitDown(player, times+1)
+            sitDown(player, times+1)
         }
-        return
     }
 
     // 返回指定房间的所有会话玩家
@@ -81,6 +93,25 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
             players = append(players, sessionPlayers[member])
         }
         return
+    }
+
+    // 返回下一个行动的棋色
+    var getNextColorByRoomIndex = func(roomIndex int) string {
+        if _, ok := chessDown[roomIndex]; !ok {
+            chessDown[roomIndex] = 0
+        }
+        if chessDown[roomIndex]%2 == 0 {
+            return "black"
+        }
+        return "white"
+    }
+
+    // 获取另外一个颜色
+    var getOtherColor = func(color string) string {
+        if color == "black" {
+            return "white"
+        }
+        return "black"
     }
 
     // 处理连接
@@ -109,6 +140,13 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
         _ = wsm.BroadcastMultiple([]byte(msg), getSessionsByRoomIndex(me.RoomIndex))
         delete(roomPlayers[me.RoomIndex], me.PlayerId)
         delete(sessionPlayers, s)
+        chessHistory[me.RoomIndex] = make(map[int]string, 0)
+        chessDown[me.RoomIndex] = 0
+        for _, player := range getPlayerByRoomIndex(me.RoomIndex) {
+            p := sessionPlayers[player.Session]
+            p.ChessStep = 0
+            sessionPlayers[player.Session] = p
+        }
     })
 
     // 处理消息
@@ -124,12 +162,7 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
             args.Arguments["user_id"] = int64(me.PlayerId)
 
             // 找有空位的房间坐下
-            th := sitDown(&me, 1)
-            if th == 1 {
-                me.ChessColor = "black"
-            } else {
-                me.ChessColor = "white"
-            }
+            sitDown(&me, 1)
             sessionPlayers[s] = me
 
             // 返回注册信息
@@ -139,9 +172,11 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
 
             // 对该房间的人进行广播.玩家上线
             msg := behavior.CBehavior.Message("online", args.BehaviorId, map[string]interface{}{
-                "message": fmt.Sprintf("[%s] %s 上线了", colorMap[me.ChessColor], me.Nickname),
-                "online":  len(roomPlayers[me.RoomIndex]),
-                "players": getPlayerByRoomIndex(me.RoomIndex),
+                "message":   fmt.Sprintf("[%s] %s 上线了", colorMap[me.ChessColor], me.Nickname),
+                "online":    len(roomPlayers[me.RoomIndex]),
+                "players":   getPlayerByRoomIndex(me.RoomIndex),
+                "history":   chessHistory[me.RoomIndex],
+                "nextColor": getNextColorByRoomIndex(me.RoomIndex),
             })
             _ = wsm.BroadcastMultiple([]byte(msg), getSessionsByRoomIndex(me.RoomIndex))
             return
@@ -152,6 +187,40 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
             behavior.CBehavior.WsFailed(s, err.Error(), args.BehaviorId)
             return
         }
+
+        if args.Behavior == "move" { // 移动棋子
+            msg := behavior.CBehavior.Message(args.Behavior, args.BehaviorId, args.Arguments)
+            _ = wsm.BroadcastMultiple([]byte(msg), getSessionsByRoomIndex(sessionPlayers[s].RoomIndex))
+            return
+        }
+
+        if args.Behavior == "chessDown" { // 棋子落盘
+            me := sessionPlayers[s]
+            willDown := tool.ToInt(args.Arguments["willDown"])
+            if _, ok := chessHistory[me.RoomIndex][willDown]; ok {
+                return
+            }
+
+            me.ChessStep += 1
+            sessionPlayers[s] = me
+            args.Arguments["players"] = getPlayerByRoomIndex(me.RoomIndex)
+            if _, ok := chessHistory[me.RoomIndex]; !ok {
+                chessHistory[me.RoomIndex] = make(map[int]string, 0)
+            }
+            chessHistory[me.RoomIndex][willDown] = getNextColorByRoomIndex(me.RoomIndex)
+            args.Arguments["nextColor"] = getOtherColor(chessHistory[me.RoomIndex][willDown])
+            args.Arguments["history"] = chessHistory[me.RoomIndex]
+            if _, ok := chessDown[me.RoomIndex]; !ok {
+                chessDown[me.RoomIndex] = 1
+            } else {
+                chessDown[me.RoomIndex] += 1
+            }
+
+            msg := behavior.CBehavior.Message(args.Behavior, args.BehaviorId, args.Arguments)
+            _ = wsm.BroadcastMultiple([]byte(msg), getSessionsByRoomIndex(sessionPlayers[s].RoomIndex))
+            return
+        }
+
         return
     })
 }
