@@ -69,6 +69,7 @@ func (w *WsChat) WsChatRoute(e *echo.Echo) {
             if _, ok := args.Arguments["nickname"]; !ok {
                 args.Arguments["nickname"] = gophers[s]
             }
+            gophers[s] = args.Arguments["nickname"].(string)
 
             // 返回注册信息
             args.Arguments["token"] = w.TokenCreator(args.Arguments)

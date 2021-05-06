@@ -80,8 +80,8 @@ func Route(e *echo.Echo) {
     e.GET("/configure", mixed.CConfig.GetConfigure, jwtMiddle, rateMiddle(1)) // 获取配置
 
     e.Static("/node_modules", "public/node_modules")
-    e.Static("/js", "public/js")
-    e.Static("/css", "public/css")
+    e.Static("/dist", "public/dist")
+    e.Static("/img", "public/img")
     e.GET("/v/:html", func(c echo.Context) error {
         return c.File(fmt.Sprintf("public/view/%s.html", c.Param("html")))
     })
