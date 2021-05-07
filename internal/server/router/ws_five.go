@@ -116,10 +116,95 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
     }
 
     // 计算是否胜出
-    var calIsWin = func(color string, down int) string {
+    var calIsWin = func(roomIndex int, down int, color string) string {
         row := int(math.Floor(float64(down / 15)))
         col := down % 15
-        tool.PrintVar(down, row, col)
+        var getColor = func(d int) string {
+            color := ""
+            if _, ok := chessHistory[roomIndex][d]; ok {
+                color = chessHistory[roomIndex][d]
+            }
+            return color
+        }
+        A := 1
+        for i := 1; i <= 5; i++ { // 横向(-).左边
+            if col-i < 0 || getColor(down-i) != color {
+                break
+            }
+            A += 1
+            if A >= 5 {
+                return color
+            }
+        }
+        for i := 1; i <= 5; i++ { // 横向(-).右边
+            if col+i > 15 || getColor(down+i) != color {
+                break
+            }
+            A += 1
+            if A >= 5 {
+                return color
+            }
+        }
+
+        B := 1
+        for i := 1; i <= 5; i++ { // 竖向(|).上边
+            if row-i < 0 || getColor(down-(i*15)) != color {
+                break
+            }
+            B += 1
+            if B >= 5 {
+                return color
+            }
+        }
+        for i := 1; i <= 5; i++ { // 竖向(|).下边
+            if row+i > 15 || getColor(down+(i*15)) != color {
+                break
+            }
+            B += 1
+            if B >= 5 {
+                return color
+            }
+        }
+
+        C := 1
+        for i := 1; i <= 5; i++ { // 捺向(\).左上边
+            if col-i < 0 || row-i < 0 || getColor(down-(i*15)-i) != color {
+                break
+            }
+            C += 1
+            if C >= 5 {
+                return color
+            }
+        }
+        for i := 1; i <= 5; i++ { // 捺向(\).右下边
+            if col+i > 15 || row+i > 15 || getColor(down+(i*15)+i) != color {
+                break
+            }
+            C += 1
+            if C >= 5 {
+                return color
+            }
+        }
+
+        D := 1
+        for i := 1; i <= 5; i++ { // 撇向(/).左下边
+            if col-i < 0 || row+i > 15 || getColor(down+(i*15)-i) != color {
+                break
+            }
+            D += 1
+            if D >= 5 {
+                return color
+            }
+        }
+        for i := 1; i <= 5; i++ { // 撇向(/).右上边
+            if col+i > 15 || row-i < 0 || getColor(down-(i*15)+i) != color {
+                break
+            }
+            D += 1
+            if D >= 5 {
+                return color
+            }
+        }
 
         return ""
     }
@@ -229,7 +314,7 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
                 chessDown[me.RoomIndex] += 1
             }
 
-            args.Arguments["win"] = calIsWin(chessHistory[me.RoomIndex][willDown], willDown)
+            args.Arguments["win"] = calIsWin(me.RoomIndex, willDown, chessHistory[me.RoomIndex][willDown])
             msg := behavior.CBehavior.Message(args.Behavior, args.BehaviorId, args.Arguments)
             _ = wsm.BroadcastMultiple([]byte(msg), getSessionsByRoomIndex(sessionPlayers[s].RoomIndex))
             return
