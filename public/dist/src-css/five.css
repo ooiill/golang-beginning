@@ -93,6 +93,7 @@ div.container div.data > div.black {
   border-radius: 4px;
   overflow: auto;
   border: 1px solid transparent;
+  box-shadow: 0 0 8px 0 #c7c7c7;
 }
 div.container div.data > div.white.current,
 div.container div.data > div.black.current {
@@ -134,19 +135,18 @@ div.container .chess.black {
 }
 div.container .chess.abs {
   position: absolute;
-  z-index: 9999;
+  z-index: 99;
   cursor: pointer;
 }
 @keyframes next-step-breathing {
   0% {
-    border: 1px solid rgba(0, 128, 0, 0.06);
+    border: 1px solid rgba(0, 128, 0, 0.03);
   }
-  40%,
+  40% {
+    border: 1px solid rgba(0, 128, 0, 0.7);
+  }
   60% {
-    border: 1px solid rgba(0, 128, 0, 0.5);
-  }
-  100% {
-    border: 1px solid rgba(0, 128, 0, 0.06);
+    border: 1px solid rgba(0, 128, 0, 0.03);
   }
 }
 /*# sourceMappingURL=five.css.map */

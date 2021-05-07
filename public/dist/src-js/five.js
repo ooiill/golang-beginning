@@ -181,9 +181,9 @@ bsw.configure({
                     if (args.win.length > 0) {
                         v.isWin = true;
                         if (args.win === v.myPlayer.chess_color) {
-                            bsw.confirm("success", "你赢了，继续保持哟~", 0, bsw.blank(), { zIndex: 10000 });
+                            bsw.confirm("success", "你赢了，继续保持哟~", 0);
                         } else {
-                            bsw.confirm("warning", "你输了，要努力了哟~", 0, bsw.blank(), { zIndex: 10000 });
+                            bsw.confirm("warning", "你输了，要努力了哟~", 0);
                         }
                     }
                 }
