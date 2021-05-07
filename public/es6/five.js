@@ -44,13 +44,17 @@ bsw.configure({
                     element.css({left: x, top: y})
                     let downX = Math.floor((e.pageX - 70) / 50)
                     let downY = Math.floor((e.pageY - 70) / 50)
-                    if ((e.pageX - 70) % 50 > 25) {
+                    if (e.pageX > 45 && e.pageX < 70) {
+                        downX = 0
+                    } else if ((e.pageX - 70) % 50 > 25) {
                         downX += 1
                     }
-                    if ((e.pageY - 70) % 50 > 25) {
+                    if (e.pageY > 45 && e.pageY < 70) {
+                        downY = 0
+                    } else if ((e.pageY - 70) % 50 > 25) {
                         downY += 1
                     }
-                    if (downX < 0 || downX > 14 || downY < 0 || downY > 15) {
+                    if (downX < 0 || downX > 14 || downY < 0 || downY > 14) {
                         that.willDown = 0
                     } else {
                         let willDown = (downY * 15) + (downX + 1)

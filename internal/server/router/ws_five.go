@@ -118,7 +118,7 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
     // 计算是否胜出
     var calIsWin = func(roomIndex int, down int, color string) string {
         row := int(math.Floor(float64(down / 15)))
-        col := down % 15
+        col := down%15 - 1
         var getColor = func(d int) string {
             color := ""
             if _, ok := chessHistory[roomIndex][d]; ok {
@@ -137,7 +137,7 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
             }
         }
         for i := 1; i <= 5; i++ { // 横向(-).右边
-            if col+i > 15 || getColor(down+i) != color {
+            if col+i > 14 || getColor(down+i) != color {
                 break
             }
             A += 1
@@ -157,7 +157,7 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
             }
         }
         for i := 1; i <= 5; i++ { // 竖向(|).下边
-            if row+i > 15 || getColor(down+(i*15)) != color {
+            if row+i > 14 || getColor(down+(i*15)) != color {
                 break
             }
             B += 1
@@ -177,7 +177,7 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
             }
         }
         for i := 1; i <= 5; i++ { // 捺向(\).右下边
-            if col+i > 15 || row+i > 15 || getColor(down+(i*15)+i) != color {
+            if col+i > 14 || row+i > 14 || getColor(down+(i*15)+i) != color {
                 break
             }
             C += 1
@@ -188,7 +188,7 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
 
         D := 1
         for i := 1; i <= 5; i++ { // 撇向(/).左下边
-            if col-i < 0 || row+i > 15 || getColor(down+(i*15)-i) != color {
+            if col-i < 0 || row+i > 14 || getColor(down+(i*15)-i) != color {
                 break
             }
             D += 1
@@ -197,7 +197,7 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
             }
         }
         for i := 1; i <= 5; i++ { // 撇向(/).右上边
-            if col+i > 15 || row-i < 0 || getColor(down-(i*15)+i) != color {
+            if col+i > 14 || row-i < 0 || getColor(down-(i*15)+i) != color {
                 break
             }
             D += 1
