@@ -48,7 +48,7 @@ func (m *mysql) Connect() {
         })
         if err == nil {
             _ = orm.Use(prometheus.New(prometheus.Config{
-                DBName:          "cash_cow",
+                DBName:          "beginning",
                 RefreshInterval: 15,
                 StartServer:     false,
                 HTTPServerPort:  9002,
