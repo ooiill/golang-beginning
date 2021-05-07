@@ -5,7 +5,6 @@ import (
     "app/pkg/handler"
     "github.com/labstack/echo/v4"
     "github.com/spf13/viper"
-    "net/http"
 )
 
 var CHome Home
@@ -19,9 +18,9 @@ type Home struct {
 // Homepage
 func (cc *Home) GetHomepage(c echo.Context) error {
     usr := cc.ParseUserInfo(c)
-    return c.JSON(http.StatusOK, cc.RS().ShowOkay(echo.Map{
+    return cc.RS(c).ShowOkay(echo.Map{
         "version": viper.GetString("app.version"),
         "speech":  viper.GetString("app.name"),
         "uid":     usr.UID,
-    }))
+    })
 }

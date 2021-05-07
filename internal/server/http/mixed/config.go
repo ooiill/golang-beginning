@@ -5,7 +5,6 @@ import (
     "app/internal/pkg/config"
     "app/pkg/handler"
     "github.com/labstack/echo/v4"
-    "net/http"
 )
 
 var CConfig Config
@@ -25,5 +24,5 @@ func (cc *Config) GetConfigure(c echo.Context) error {
         }
         list[key] = cnf
     }
-    return c.JSON(http.StatusOK, cc.RS().ShowOkay(list))
+    return cc.RS(c).ShowOkay(list)
 }

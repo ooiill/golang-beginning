@@ -22,7 +22,7 @@ var dontReport = []int{
 
 func CustomHTTPErrorHandler(err error, c echo.Context) {
     response := Response{}
-    resp := response.RS()
+    resp := response.RS(c)
     code := http.StatusInternalServerError
 
     if he, ok := err.(*echo.HTTPError); ok {
@@ -33,7 +33,7 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
         }
     } else if he, ok := err.(*ResponseStruct); ok {
         resp = he
-        code = he.GetHttpCode()
+        code = he.HttpCode
     } else if c.Echo().Debug {
         _ = resp.SetMessage(err.Error())
     } else if errs, ok := err.(validator.ValidationErrors); ok {
@@ -94,7 +94,7 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
         if c.Request().Method == http.MethodHead { // Issue #608
             err = c.NoContent(code)
         } else {
-            err = c.JSON(code, resp.GetStruct())
+            err = c.JSON(code, resp)
         }
         if err != nil {
             c.Echo().Logger.Error(err)

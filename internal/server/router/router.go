@@ -41,7 +41,7 @@ func Route(e *echo.Echo) {
     }))
 
     // JWT中间件
-    jwtMiddle := hook.JWTWithConfig(hook.JWTConfig{
+    var jwtMiddle = hook.JWTWithConfig(hook.JWTConfig{
         SigningKey: []byte(viper.GetString("jwt.secret")),
         Claims:     &acme.UserInfoApi{},
         NeutralRoute: []string{ // 中立路由（给定则解析，不给定则跳过）
@@ -79,6 +79,7 @@ func Route(e *echo.Echo) {
     e.GET("/demo", mixed.CDemo.GetDemo, jwtMiddle, rateMiddle(10))            // Demo
     e.GET("/configure", mixed.CConfig.GetConfigure, jwtMiddle, rateMiddle(1)) // 获取配置
 
+    // 前端资源路由
     e.Static("/node_modules", "public/node_modules")
     e.Static("/dist", "public/dist")
     e.Static("/img", "public/img")
