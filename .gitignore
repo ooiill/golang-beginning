@@ -1,7 +1,5 @@
 .idea
 config.local.toml
 main
-api
-queue
 .editorconfig
 public/node_modules
