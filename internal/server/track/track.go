@@ -14,7 +14,7 @@ type Track struct {
 }
 
 // MyJobDemo
-func (t *Track) Track4PurchaseDivineTree(userId int64) {
+func (t *Track) Track4MyJobDemo(userId int64) {
     ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
     go func() {
         queue.NewProducer("my_job_demo", &job.MyJobDemo{
