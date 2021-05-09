@@ -1,6 +1,6 @@
 [app]
 name = "项目的开端"
-env = "local"
+env = "dev"
 debug = true
 version = "v0.0.1"
 listen = 8090
@@ -33,7 +33,7 @@ password = "MySQL@9527"
 drive = "redis"
 
 [redis]
-host = "ubuntu"
+host = "127.0.0.1"
 port = "7379"
 auth = "Redis@9527"
 database = 0
@@ -49,7 +49,7 @@ region = "ap-shanghai"
 drive = "rabbit-mq"
 
 [rabbit-mq]
-host = "ubuntu"
+host = "127.0.0.1"
 port = "6672"
 user = "admin"
 pass = "Rabbit@9527"

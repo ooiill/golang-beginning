@@ -41,7 +41,7 @@ func main() {
 
 func initConfig() {
     env, _ := ioutil.ReadFile(".env")
-    filename := fmt.Sprintf("config.%s.toml", strings.Trim(string(env), "\n "))
+    filename := fmt.Sprintf("config.%s.toml", strings.Trim(string(env), "\r\n "))
     _, err := os.Stat(filename)
     if (err == nil) || (os.IsExist(err)) {
         viper.SetConfigFile(filename)
