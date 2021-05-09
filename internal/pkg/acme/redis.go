@@ -1,8 +1,8 @@
 package acme
 
 import (
-    "app/internal/server/variables"
-    tool "app/pkg/acme"
+    "beginning/internal/server/variables"
+    tool "beginning/pkg/acme"
     "fmt"
     "github.com/golang-module/carbon"
     rdsV4 "gopkg.in/redis.v4"

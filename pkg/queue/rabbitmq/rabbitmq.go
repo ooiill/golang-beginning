@@ -1,7 +1,7 @@
 package rabbitmq
 
 import (
-    "app/pkg/queue"
+    "beginning/pkg/queue"
     "encoding/json"
     "fmt"
     "github.com/golang-module/carbon"

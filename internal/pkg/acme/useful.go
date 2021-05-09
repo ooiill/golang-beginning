@@ -1,7 +1,7 @@
 package acme
 
 import (
-    tool "app/pkg/acme"
+    tool "beginning/pkg/acme"
     "github.com/spf13/viper"
     "github.com/wumansgy/goEncrypt"
 )

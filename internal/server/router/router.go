@@ -1,9 +1,9 @@
 package router
 
 import (
-    "app/internal/pkg/acme"
-    "app/internal/server/http/mixed"
-    "app/pkg/hook"
+    "beginning/internal/pkg/acme"
+    "beginning/internal/server/http/mixed"
+    "beginning/pkg/hook"
     "fmt"
     "net/http"
 

@@ -1,10 +1,10 @@
 package behavior
 
 import (
-    "app/internal/pkg/acme"
-    tool "app/pkg/acme"
-    "app/pkg/handler"
-    logger "app/pkg/log"
+    "beginning/internal/pkg/acme"
+    tool "beginning/pkg/acme"
+    "beginning/pkg/handler"
+    logger "beginning/pkg/log"
     "fmt"
     "github.com/golang-module/carbon"
     "gopkg.in/olahol/melody.v1"

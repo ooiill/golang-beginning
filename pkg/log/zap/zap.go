@@ -1,7 +1,7 @@
 package zap
 
 import (
-    lg "app/pkg/log"
+    lg "beginning/pkg/log"
     "go.uber.org/zap"
     "go.uber.org/zap/zapcore"
     "time"

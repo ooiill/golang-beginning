@@ -1,4 +1,4 @@
-module app
+module beginning
 
 go 1.14
 

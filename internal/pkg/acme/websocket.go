@@ -1,9 +1,9 @@
 package acme
 
 import (
-    "app/internal/entity"
-    "app/internal/server/variables"
-    tool "app/pkg/acme"
+    "beginning/internal/entity"
+    "beginning/internal/server/variables"
+    tool "beginning/pkg/acme"
     "github.com/golang-module/carbon"
 )
 

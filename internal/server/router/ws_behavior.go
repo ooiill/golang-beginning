@@ -1,12 +1,12 @@
 package router
 
 import (
-    "app/internal/entity"
-    "app/internal/pkg/acme"
-    "app/internal/server/http/behavior"
-    "app/internal/server/variables"
-    tool "app/pkg/acme"
-    "app/pkg/handler"
+    "beginning/internal/entity"
+    "beginning/internal/pkg/acme"
+    "beginning/internal/server/http/behavior"
+    "beginning/internal/server/variables"
+    tool "beginning/pkg/acme"
+    "beginning/pkg/handler"
     "fmt"
     "github.com/golang-module/carbon"
     "github.com/labstack/echo/v4"

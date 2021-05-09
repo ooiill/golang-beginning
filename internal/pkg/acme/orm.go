@@ -1,7 +1,7 @@
 package acme
 
 import (
-    "app/pkg/db"
+    "beginning/pkg/db"
     "fmt"
     "gorm.io/gorm"
 )

@@ -1,7 +1,7 @@
 package mysql
 
 import (
-    "app/pkg/db"
+    "beginning/pkg/db"
     "fmt"
     "time"
 

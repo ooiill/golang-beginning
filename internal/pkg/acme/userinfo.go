@@ -1,7 +1,7 @@
 package acme
 
 import (
-    tool "app/pkg/acme"
+    tool "beginning/pkg/acme"
     "errors"
     "fmt"
     "github.com/dgrijalva/jwt-go"

@@ -1,10 +1,10 @@
 package router
 
 import (
-    "app/internal/pkg/acme"
-    "app/internal/server/http/behavior"
-    "app/internal/server/variables"
-    tool "app/pkg/acme"
+    "beginning/internal/pkg/acme"
+    "beginning/internal/server/http/behavior"
+    "beginning/internal/server/variables"
+    tool "beginning/pkg/acme"
     "fmt"
     "github.com/labstack/echo/v4"
     "gopkg.in/olahol/melody.v1"

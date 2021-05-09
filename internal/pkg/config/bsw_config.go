@@ -1,12 +1,12 @@
 package config
 
 import (
-    "app/internal/entity"
-    "app/internal/pkg/acme"
-    "app/internal/server/variables"
-    tool "app/pkg/acme"
-    "app/pkg/cache"
-    "app/pkg/db"
+    "beginning/internal/entity"
+    "beginning/internal/pkg/acme"
+    "beginning/internal/server/variables"
+    tool "beginning/pkg/acme"
+    "beginning/pkg/cache"
+    "beginning/pkg/db"
     "errors"
     "strconv"
 )

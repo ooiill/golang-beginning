@@ -27,7 +27,7 @@ host = "10.0.0.x"
 port = "3306"
 database = "beginning"
 username = "root"
-password = "Mys9l@7259"
+password = "MySQL@9527"
 
 [cache]
 drive = "redis"
@@ -35,7 +35,7 @@ drive = "redis"
 [redis]
 host = "10.0.0.x"
 port = "6379"
-auth = "Red1s@9527"
+auth = "Redis@9527"
 database = 0
 
 [fs]
@@ -52,7 +52,7 @@ drive = "rabbit-mq"
 host = "10.0.0.x"
 port = "5672"
 user = "admin"
-pass = "admin"
+pass = "Rabbit@9527"
 vhost = "/"
 
 [wx-applet]

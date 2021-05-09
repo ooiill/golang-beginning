@@ -1,8 +1,8 @@
 package mixed
 
 import (
-    "app/internal/pkg/acme"
-    "app/pkg/handler"
+    "beginning/internal/pkg/acme"
+    "beginning/pkg/handler"
     "github.com/labstack/echo/v4"
     "github.com/spf13/viper"
 )

@@ -1,7 +1,7 @@
 package job
 
 import (
-    "app/pkg/queue"
+    "beginning/pkg/queue"
     "fmt"
     "github.com/golang-module/carbon"
 )

@@ -1,7 +1,7 @@
 package hook
 
 import (
-    tool "app/pkg/acme"
+    tool "beginning/pkg/acme"
     "fmt"
     "github.com/labstack/echo/v4/middleware"
     "net/http"

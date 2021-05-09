@@ -1,7 +1,7 @@
 package cos
 
 import (
-    "app/pkg/file"
+    "beginning/pkg/file"
     "github.com/tencentyun/cos-go-sdk-v5"
     "net/http"
     "net/url"

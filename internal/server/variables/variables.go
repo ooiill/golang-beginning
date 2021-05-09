@@ -1,7 +1,7 @@
 package variables
 
 import (
-    tool "app/pkg/acme"
+    tool "beginning/pkg/acme"
     "fmt"
     "github.com/sony/sonyflake"
     "github.com/spf13/viper"

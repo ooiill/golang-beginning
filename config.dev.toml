@@ -1,11 +1,11 @@
 [app]
 name = "项目的开端"
-env = "beta"
-debug = false
+env = "local"
+debug = true
 version = "v0.0.1"
-listen = 8080
+listen = 8090
 salt = "BWqzqzeCq8L$8obW"
-host = "http://beta.app.com"
+host = "http://127.0.0.1:8090"
 google_secret = "DXQHUUBTVBVSFEIA"
 
 [cnf]
@@ -23,8 +23,8 @@ iv = "lR25Ojr5Nq9uv9Lu"
 
 [db]
 connection = "mysql"
-host = "10.0.0.x"
-port = "3306"
+host = "127.0.0.1"
+port = "4306"
 database = "beginning"
 username = "root"
 password = "MySQL@9527"
@@ -33,8 +33,8 @@ password = "MySQL@9527"
 drive = "redis"
 
 [redis]
-host = "10.0.0.x"
-port = "6379"
+host = "ubuntu"
+port = "7379"
 auth = "Redis@9527"
 database = 0
 
@@ -49,8 +49,8 @@ region = "ap-shanghai"
 drive = "rabbit-mq"
 
 [rabbit-mq]
-host = "10.0.0.x"
-port = "5672"
+host = "ubuntu"
+port = "6672"
 user = "admin"
 pass = "Rabbit@9527"
 vhost = "/"

@@ -1,9 +1,9 @@
 package mixed
 
 import (
-    "app/internal/pkg/acme"
-    "app/internal/pkg/config"
-    "app/pkg/handler"
+    "beginning/internal/pkg/acme"
+    "beginning/internal/pkg/config"
+    "beginning/pkg/handler"
     "github.com/labstack/echo/v4"
 )
 

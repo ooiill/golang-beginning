@@ -1,8 +1,8 @@
 package track
 
 import (
-    "app/internal/server/job"
-    "app/pkg/queue"
+    "beginning/internal/server/job"
+    "beginning/pkg/queue"
     "context"
     "github.com/golang-module/carbon"
     "time"

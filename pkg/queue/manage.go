@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"app/pkg/db"
+	"beginning/pkg/db"
 	"sync"
 )
 
