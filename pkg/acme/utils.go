@@ -192,7 +192,9 @@ func DownloadRemoteFile(fileUrl, filePath string, retryTimes int) error {
     if err != nil {
         return err
     }
-    defer response.Body.Close()
+    defer func() {
+        _ = response.Body.Close()
+    }()
 
     if response.StatusCode == 404 {
         return errors.New(fmt.Sprintf("下载的文件不存在, 文件：%s", fileUrl))
@@ -202,7 +204,9 @@ func DownloadRemoteFile(fileUrl, filePath string, retryTimes int) error {
     if err != nil {
         return err
     }
-    defer file.Close()
+    defer func() {
+        _ = file.Close()
+    }()
 
     source, _ := ioutil.ReadAll(response.Body)
     _, err = file.Write(source)
@@ -248,7 +252,9 @@ func CopyFile(src, des string) (written int64, err error) {
     if err != nil {
         return 0, err
     }
-    defer srcFile.Close()
+    defer func() {
+        _ = srcFile.Close()
+    }()
 
     // 获取源文件的权限
     fi, _ := srcFile.Stat()
@@ -258,7 +264,9 @@ func CopyFile(src, des string) (written int64, err error) {
     if err != nil {
         return 0, err
     }
-    defer desFile.Close()
+    defer func() {
+        _ = desFile.Close()
+    }()
 
     return io.Copy(desFile, srcFile)
 }

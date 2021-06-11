@@ -76,7 +76,7 @@ func (obj *PhpObject) SetPublicMemberValue(memberName string, value interface{})
 func encodeValue(buf *bytes.Buffer, value interface{}) (err error) {
     switch t := value.(type) {
     default:
-        err = fmt.Errorf("Unexpected type %T", t)
+        err = fmt.Errorf("unexpected type %T", t)
     case bool:
         buf.WriteString("b")
         buf.WriteRune(TypeValueSeparator)
@@ -104,7 +104,7 @@ func encodeValue(buf *bytes.Buffer, value interface{}) (err error) {
     case float64:
         buf.WriteString("d")
         buf.WriteRune(TypeValueSeparator)
-        strValue := strconv.FormatFloat(float64(t), 'f', -1, 64)
+        strValue := strconv.FormatFloat(t, 'f', -1, 64)
         buf.WriteString(strValue)
         buf.WriteRune(ValuesSeparator)
     case string:

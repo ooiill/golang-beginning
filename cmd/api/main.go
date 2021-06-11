@@ -43,8 +43,9 @@ func main() {
     initProvider()
     initMetrics()
     variables.SVariables.Bootstrap()
-    initHTTP()
     initSignal()
+    initHTTP()
+
 }
 
 func initConfig() {
@@ -179,17 +180,19 @@ func initHTTP() {
 }
 
 func initSignal() {
-    c := make(chan os.Signal, 1)
-    signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
-    for {
-        s := <-c
-        switch s {
-        case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
-            fmt.Print("api exit")
-            return
-        case syscall.SIGHUP:
-        default:
-            return
+    go func() {
+        c := make(chan os.Signal, 1)
+        signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
+        for {
+            s := <-c
+            switch s {
+            case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
+                fmt.Print("api exit")
+                return
+            case syscall.SIGHUP:
+            default:
+                return
+            }
         }
-    }
+    }()
 }
