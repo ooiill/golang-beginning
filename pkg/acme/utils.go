@@ -392,44 +392,46 @@ func ParseUrlQuery(target string) map[string]interface{} {
 }
 
 // 将 map 转查询字符串
-func MapToQueryString(target map[string]interface{}, kvSplit string, pairSplit string) string {
+func MapToQueryString(target map[string]interface{}, queryField string, kvSplit string, pairSplit string) string {
     var keys []string
     for k := range target {
         keys = append(keys, k)
     }
     sort.Strings(keys)
     var query []string
-    for _, v := range keys {
-        if IsMap(target[v]) {
-            val := MapToQueryString(target[v].(map[string]interface{}), kvSplit, pairSplit)
-            val = fmt.Sprintf("(%s)", val)
-            query = append(query, fmt.Sprintf("%s%s%s", v, kvSplit, val))
-        } else if IsArray(target[v]) || IsSlice(target[v]) {
-            val := ArrayToQueryString(target[v].([]interface{}), kvSplit, pairSplit)
-            val = fmt.Sprintf("(%s)", val)
-            query = append(query, fmt.Sprintf("%s%s%s", v, kvSplit, val))
-        } else {
-            query = append(query, fmt.Sprintf("%s%s%s", v, kvSplit, ToStr(target[v])))
+    for _, k := range keys {
+        var chunk string
+        var v = target[k]
+        var field = k
+        if len(queryField) > 0 {
+            field = fmt.Sprintf("%s[%s]", queryField, k)
         }
+        if IsMap(v) {
+            chunk = MapToQueryString(v.(map[string]interface{}), field, kvSplit, pairSplit)
+        } else if IsArray(v) || IsSlice(v) {
+            chunk = ArrayToQueryString(v.([]interface{}), field, kvSplit, pairSplit)
+        } else {
+            chunk = fmt.Sprintf("%s%s%s", field, kvSplit, ToStr(v))
+        }
+        query = append(query, chunk)
     }
     return strings.Join(query, pairSplit)
 }
 
 // 将 array 转查询字符串
-func ArrayToQueryString(target []interface{}, kvSplit string, pairSplit string) string {
+func ArrayToQueryString(target []interface{}, queryField string, kvSplit string, pairSplit string) string {
     var query []string
     for k, v := range target {
+        var chunk string
+        var field = fmt.Sprintf("%s[%d]", queryField, k)
         if IsMap(v) {
-            val := MapToQueryString(v.(map[string]interface{}), kvSplit, pairSplit)
-            val = fmt.Sprintf("(%s)", val)
-            query = append(query, fmt.Sprintf("%d%s%s", k, kvSplit, val))
+            chunk = MapToQueryString(v.(map[string]interface{}), field, kvSplit, pairSplit)
         } else if IsArray(v) || IsSlice(v) {
-            val := ArrayToQueryString(v.([]interface{}), kvSplit, pairSplit)
-            val = fmt.Sprintf("(%s)", val)
-            query = append(query, fmt.Sprintf("%d%s%s", k, kvSplit, val))
+            chunk = ArrayToQueryString(v.([]interface{}), field, kvSplit, pairSplit)
         } else {
-            query = append(query, fmt.Sprintf("%d%s%s", k, kvSplit, ToStr(v)))
+            chunk = fmt.Sprintf("%s%s%s", field, kvSplit, ToStr(v))
         }
+        query = append(query, chunk)
     }
     return strings.Join(query, pairSplit)
 }
@@ -438,7 +440,7 @@ func ArrayToQueryString(target []interface{}, kvSplit string, pairSplit string) 
 func InterfaceToQueryString(target interface{}, kvSplit string, pairSplit string) string {
     var targetMap map[string]interface{}
     AlignStructAndMap(target, &targetMap)
-    return MapToQueryString(targetMap, kvSplit, pairSplit)
+    return MapToQueryString(targetMap, "", kvSplit, pairSplit)
 }
 
 // 对 map 签名
@@ -446,7 +448,7 @@ func MapToSignature(target map[string]interface{}, salt string, timeKey string, 
     if _, exists := target[timeKey]; !exists {
         target[timeKey] = carbon.Now().ToTimestampWithMicrosecond()
     }
-    signature := MapToQueryString(target, kvSplit, pairSplit)
+    signature := MapToQueryString(target, "", kvSplit, pairSplit)
     signature = fmt.Sprintf("%s%s%s", signature, saltSplit, salt)
     return signature, Md5(signature)
 }
