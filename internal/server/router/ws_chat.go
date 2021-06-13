@@ -22,7 +22,7 @@ type WsChat struct {
 }
 
 // WebSocket chat
-func (w *WsChat) WsChatRoute(e *echo.Echo) {
+func (w *WsChat) WsChatRoute(e *echo.Echo, path string) *melody.Melody {
     wsm := melody.New()
     gophers := make(map[*melody.Session]string, 0)
     lock := new(sync.Mutex)
@@ -30,7 +30,7 @@ func (w *WsChat) WsChatRoute(e *echo.Echo) {
     wsm.Upgrader.CheckOrigin = func(r *http.Request) bool {
         return true
     }
-    e.GET("/ws/chat", func(c echo.Context) error {
+    e.GET(path, func(c echo.Context) error {
         _ = wsm.HandleRequest(c.Response().Writer, c.Request())
         return nil
     })
@@ -98,4 +98,6 @@ func (w *WsChat) WsChatRoute(e *echo.Echo) {
         }()
         return
     })
+
+    return wsm
 }

@@ -28,7 +28,7 @@ type Player struct {
 }
 
 // WebSocket five in a row
-func (w *WsFive) WsFiveRoute(e *echo.Echo) {
+func (w *WsFive) WsFiveRoute(e *echo.Echo, path string) *melody.Melody {
     wsm := melody.New()
 
     // 所有玩家，通过会话找用户ID
@@ -44,7 +44,7 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
     var chessDown = make(map[int]int, 0)
 
     lock := new(sync.Mutex)
-    e.GET("/ws/five", func(c echo.Context) error {
+    e.GET(path, func(c echo.Context) error {
         _ = wsm.HandleRequest(c.Response().Writer, c.Request())
         return nil
     })
@@ -322,4 +322,6 @@ func (w *WsFive) WsFiveRoute(e *echo.Echo) {
 
         return
     })
+
+    return wsm
 }

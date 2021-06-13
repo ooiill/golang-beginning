@@ -70,9 +70,9 @@ func Route(e *echo.Echo) {
     }
 
     // WebSocket Route
-    RWsBehavior.WsBehaviorRouter(e)
-    RWsChat.WsChatRoute(e)
-    RWsFive.WsFiveRoute(e)
+    _ = RWsBehavior.WsBehaviorRouter(e, "/ws/behavior")
+    _ = RWsChat.WsChatRoute(e, "/ws/chat")
+    _ = RWsFive.WsFiveRoute(e, "/ws/five")
 
     // 项目路由
     e.GET("/", mixed.CHome.GetHomepage, jwtMiddle, rateMiddle(1))             // 首页

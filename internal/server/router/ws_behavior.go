@@ -31,7 +31,7 @@ type BehaviorGophers struct {
 }
 
 // WebSocket behavior
-func (w *WsBehavior) WsBehaviorRouter(e *echo.Echo) {
+func (w *WsBehavior) WsBehaviorRouter(e *echo.Echo, path string) *melody.Melody {
     wsm := melody.New()
     gophers := make(map[*melody.Session]BehaviorGophers, 0)
     lock := new(sync.Mutex)
@@ -39,7 +39,7 @@ func (w *WsBehavior) WsBehaviorRouter(e *echo.Echo) {
     wsm.Upgrader.CheckOrigin = func(r *http.Request) bool {
         return true
     }
-    e.GET("/ws/behavior", func(c echo.Context) error {
+    e.GET(path, func(c echo.Context) error {
         _ = wsm.HandleRequest(c.Response().Writer, c.Request())
         return nil
     })
@@ -142,4 +142,6 @@ func (w *WsBehavior) WsBehaviorRouter(e *echo.Echo) {
         }()
         return
     })
+
+    return wsm
 }

@@ -12,7 +12,7 @@ func main() {
         saveFile := strings.ReplaceAll(file, "/poker", "/pk")
         _ = tool.MkDir(saveFile, true)
 
-        err := tool.ResizeImage(file, saveFile, 500, 700)
+        err := tool.ResizeImage(file, saveFile, 200, 280)
         if err != nil {
             tool.PrintVar(err)
         }

@@ -22,12 +22,13 @@ func NewCustomValidator() *CustomValidator {
 
 func (cv *CustomValidator) Validate(i interface{}) error {
     cv.lock.Lock()
+    defer cv.lock.Unlock()
+    
     zhTrans := zh.New()
     enTrans := en.New()
     uni = ut.New(zhTrans, zhTrans, enTrans)
     trans, _ := uni.GetTranslator("zh")
     _ = zhI18n.RegisterDefaultTranslations(cv.validator, trans)
     err := cv.validator.Struct(i)
-    cv.lock.Unlock()
     return err
 }
